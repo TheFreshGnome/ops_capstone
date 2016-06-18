@@ -1,0 +1,134 @@
+[code]
+#define leftmotor1 15      //receive from 16 (right sensor) HIGH -> backwards
+#define leftmotor2 14      
+#define rightmotor1 3       //17  (left sensor)
+#define rightmotor2 4       //all motors should be digitalWrite
+#define EN1 9   //left motor
+#define EN2 10  //right motor
+#define Receiver 16       //right
+#define Receiver2 17      //left
+
+
+  int pError(0);  //initl to zero
+  int derivative;
+  int leftSpeed;
+  int rightSpeed;
+  int defaultSpeed(128);
+
+  int rightDistance;
+  int leftDistance;
+
+  int rightBaseline = 0; //base target values
+  int leftBaseline = 0;   
+
+  // Parameters for the controller
+  int rightError;
+  int leftError;
+  int prevRightError;
+  int prevLeftError;
+  int totalError;     //experimentally check values?
+  int tolerance;
+
+  int time;  // Time between control loop iterations
+  int integral;
+  double kp = 1; // Proportional gain
+  //double kd = 1; Integral gain, won't need here
+
+const int nTimes = 100;   //# of times to check sensor
+
+int a, b;
+int x, y;
+
+ int acquireSensor(int Receiver_pin);
+ void moveStraight();
+ void turnRight();
+ void turnLeft();
+ //void stopMoving();
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);  
+ pinMode(Receiver, INPUT);      //right
+ pinMode(Receiver2, INPUT);     //left
+ pinMode(leftmotor1, OUTPUT); 
+ pinMode(leftmotor2, OUTPUT);
+ pinMode(rightmotor1, OUTPUT); 
+ pinMode(rightmotor2, OUTPUT);
+rightBaseline = acquireSensor(Receiver);      //right sensor avg value
+leftBaseline = acquireSensor(Receiver2);     //left
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+ a =  analogRead(Receiver);
+ b =  analogRead(Receiver2);  //base2
+ x = map(a, 1023, rightBaseline, 255, 0 ); 
+ y = map(b, 1023, leftBaseline, 255, 0);
+
+ analogWrite(EN2, x);    //port 10   //"EN" is PWM, so analogwrite
+ analogWrite(EN1, y);   //port 9
+
+ moveStraight();  //PD control
+  
+ }
+
+int acquireSensor(int Receiver_pin){
+  int sum = 0;
+   for(int i = 0; i < nTimes; i++){
+    sum += analogRead(Receiver_pin);      //the sensor pin
+  }
+  sum /= nTimes;
+  return sum;
+}
+
+void moveStraight(){ 
+  rightDistance = acquireSensor(Receiver);    //measure distance from the walls
+  leftDistance = acquireSensor(Receiver2);
+
+  rightError = rightDistance - rightBaseline; //measure the deviation 
+  leftError = leftDistance - leftBaseline;
+  
+  totalError = leftError - rightError;   //
+  
+     derivative = totalError - pError;
+     int newSpeed = kp * totalError + kd * derivative;
+
+     leftSpeed = defaultSpeed + newSpeed;
+     rightSpeed = defaultSpeed - newSpeed;
+    
+    if(rightSpeed < 0){     //normalize the values 
+      rightSpeed = 0;                      
+    }
+    if(rightSpeed > 255){
+      rightSpeed = 255;
+    }
+     if(leftSpeed < 0){
+      leftSpeed = 0;                      
+    }
+    if(leftSpeed > 255){
+      leftSpeed = 255;
+    }
+    analogWrite(EN1, leftSpeed);   // the speed control
+    analogWrite(EN2, rightSpeed);
+    pError = totalError;
+}               
+
+void turnRight(){
+  digitalWrite(rightmotor2, HIGH);     //Need to turn right wheel backwards
+  //digitalWrite(rightmotor2, HIGH);    //And left motor forward
+  digitalWrite(leftmotor1, HIGH);      
+  delay(200);
+  digitalWrite(rightmotor2, LOW );
+  digitalWrite(leftmotor1, LOW);
+}
+
+void turnLeft(){    //switch the values
+  digitalWrite(rightmotor2, HIGH);     
+  //digitalWrite(rightmotor2, HIGH);    
+  digitalWrite(leftmotor1, HIGH);      
+  delay(200);
+  digitalWrite(rightmotor2, LOW );
+  digitalWrite(leftmotor1, LOW);
+}
+
+[/code]
