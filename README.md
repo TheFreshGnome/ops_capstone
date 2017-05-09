@@ -1,4 +1,4 @@
-# ops_capstone 2015-16 Fake Micromouse
+# ops_capstone 2015-16 "Fake" Micromouse
 Overview of the final project in OPS
 
 The code file is an implementation of Proportional-Derivative control that aims to decrease the oscillations about the straight path over time. The goal of this project was to create an autonomous bot that would travel a miniature micromouse maze (https://i.ytimg.com/vi/abxItBZPi3o/hqdefault.jpg) without stopping. Using the infrared light sensors values as input, the code would respond appropiately determine to move straight, right, or left. The sensors simply pass a higher value the closer to a wall the mouse is. Unfortunately; we could only complete part of the maze as the mouse's front was simply too wide to complete turns( turns out the sharp edge kept getting caught on the walls' grooves when turning). This will be noted next year for the real Micromouse project! This project was invaluable as an opportunity to combine both code logic and circuitry knowledge, as well as an introduction to feedback control. Apologies for being unable to post videos!
